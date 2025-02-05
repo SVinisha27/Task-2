@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Collage App</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .collage-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            border: 2px dashed #ccc;
+            padding: 10px;
+            min-height: 300px;
+        };
+          .collage-item {
+            position: relative;
+            display: inline-block;
+            cursor: grab;
+        }
+
+        .collage-item img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 0, 0, 0.8);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            width: 20px;
+            height: 20px;
+            font-size: 14px;
+            line-height: 20px;
+            text-align: center;
+        }
+
+        .remove-btn:hover {
+            background: red;
+        }
+    </style>
+</head>
+<body style="background-color:skyblue">
+    <div class="container mx-auto py-8">
+        <h1 style="text-align:center;font-size:50px;color:brown;font-family:monotype corsiva;"> Photo Collage Creator</h1><br><br>
+
+        <div class="flex justify-center mb-4">
+            <input id="imageUpload" type="file" accept="image/*" multiple
+                class="border border-gray-300 p-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+
+        <div class="collage-container" id="collageContainer">
+            <p class="text-gray-500 text-center w-full">Drag and drop images here to create your collage</p>
+        </div>
+
+        <div class="flex justify-center mt-6">
+            <button onclick="downloadCollage()"
+                class="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600">Download Collage</button>
+        </div>
+    </div>
+
+    <script>
+        const imageUpload = document.getElementById('imageUpload');
+        const collageContainer = document.getElementById('collageContainer');
+
+        imageUpload.addEventListener('change', (event) => {
+            const files = event.target.files;
+
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const imgElement = document.createElement('div');
+                    imgElement.classList.add('collage-item');
+                    imgElement.draggable = true;
+                    imgElement.innerHTML = `
+                        <img src="${e.target.result}" alt="Uploaded Image">
+                        <button class="remove-btn">&times;</button>
+                    `;
+
+                    imgElement.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.setData('text/plain', imgElement.outerHTML);
+                        imgElement.classList.add('dragging');
+                    });
+
+                    imgElement.addEventListener('dragend', () => {
+                        imgElement.classList.remove('dragging');
+                    });
+
+                    imgElement.querySelector('.remove-btn').addEventListener('click', () => {
+                        imgElement.remove();
+                    });
+
+                    collageContainer.appendChild(imgElement);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+        collageContainer.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        collageContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const html = e.dataTransfer.getData('text/plain');
+            collageContainer.innerHTML += html;
+        });
+
+        function downloadCollage() {
+            html2canvas(collageContainer).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'collage.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas/dist/html2canvas.min.js"></script>
+</body>
+</html>
